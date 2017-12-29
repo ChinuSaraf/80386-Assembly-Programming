@@ -1,0 +1,100 @@
+section .data
+	msg0    db "=============================",10
+db " MENU      ",10
+db "=============================",10
+db " 1]. nonoverlap without string",10
+db " 2]. overlap without string",10
+db " 3]. nonoverlap with string",10
+db " 4]. overlap with string",10
+db " 5]. Exit",10
+db "Enter your choice",10
+    len0:equ     $-msg0
+	msg1 db 10,"Source block contents are "
+	len1 equ $-msg1
+	msg2 db 10,"Destination block contents are "
+	len2 equ $-msg2
+	nl db "",10
+    nll equ $-nl
+    m db " : "
+    ml equ $-m
+    reference_table : db "0123456789ABCDEF"         ;reference table is needed for XLAT instruction
+    array : db 0x1C,0x22,0xAB,0x45,0x3A
+    array2 times 5 db 0
+    cnt : db 16
+section .bss
+	var1 : resb 2
+
+%macro print 2
+	mov rax,1
+	mov rdi,1
+	mov rsi,%1
+	mov rdx,%2
+	syscall
+%endmacro
+
+%macro read 2
+	mov rax,0
+	mov rdi,0
+	mov rsi,%1
+	mov rdx,%2
+	syscall
+%endmacro
+
+section .text
+global _start:
+_start:
+
+
+mov bl,34H
+mov r8,array	
+call h2a_word
+call h2a_addr	
+
+mov rax,60
+mov rsi,0
+syscall
+
+h2a_word:
+	mov bh,bl
+	rol bl,4
+	and bl,0x0F
+	cmp bl,09H
+	jbe next
+	add bl,07H
+	next: add bl,30H
+	mov byte[var1],bl
+	print var1,2
+	
+	
+	;shr bx,8	
+	mov bl,bh
+	and bl,0x0F
+	cmp bl,09H
+	jbe next1
+	add bl,07H
+	next1: add bl,30H
+	mov byte[var1],bl
+	print var1,2
+ret
+
+h2a_addr:
+	mov cx,16
+	mov rbx,r8
+	addr:
+		
+		rol rbx,4
+		mov r10,rbx
+		and rbx,000000000000000FH
+		cmp bl,09H
+		jbe next2
+		add bl,07H
+		next2: add bl,30H
+		mov byte[var1],bl
+		print var1,2
+		mov rbx,r10
+		dec cnt
+		jnz addr
+		
+		
+		
+ret
