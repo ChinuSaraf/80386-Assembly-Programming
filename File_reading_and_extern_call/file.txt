@@ -1,0 +1,6 @@
+There are 5 main langauages used for front-end web development.
+HTML
+CSS
+JAVASCRIPT
+JQUERY
+BOOTSTRAP
