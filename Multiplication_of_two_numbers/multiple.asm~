@@ -1,0 +1,147 @@
+	;Mon 16 Jan 2017 09:19:09 AM IST 
+	;Write X86/64 ALP to perform multiplication of two 8-bit hexadecimal numbers. Use successive addition and add and shift method. 
+	;(use of 64-bit registers is expected) 
+section .data
+	nl   : db "",10
+	ln   : equ $- nl
+	msg1 : db "Enter first number: ",10
+	len1 : equ $- msg1
+	msg2 : db "Enter second number: ",10
+	len2 : equ $- msg2
+	msg3 : db "Enter option number: ",10
+	len3 : equ $- msg3
+	msg4 : db "1. Multiplication by repeatitive addition: ",10
+	len4 : equ $- msg4
+	msg5 : db "2 .Multiplication by shift and add: ",10
+	len5 : equ $- msg5
+	msg6 : db "3. Exit ",10
+	len6 : equ $- msg6
+	msg7 : db "Your product is: ",10
+	len7 : equ $- msg7
+	result: dw 0000H
+	cnt  : db 08H
+
+section .bss
+	opt : resb 3
+	num1 :resb 3
+	num2 :resb 3
+
+section .text
+    global _start
+      _start:
+
+	%macro print 2
+	mov rax,1
+	mov rdi,1
+	mov rsi,%1
+	mov rdx,%2
+	syscall
+	%endmacro
+
+	%macro accept 2
+	mov rax,0
+	mov rdi,0
+	mov rsi,%1
+	mov rdx,%2
+	syscall
+	%endmacro
+
+
+
+	;function for printing msg1
+	print msg1,len1
+	;function for reading num1
+	accept num1,2
+
+	;function for printing msg2
+	print msg2,len2
+
+	;function for reading num2
+	accept num2,2
+
+	;function for printing msg3
+	print msg3,len3
+
+	;function for printing msg4
+	print msg4,len4
+
+	;function for printing msg5
+	print msg5,len5
+
+	;function for printing msg6
+	print msg6,len6
+
+	;function for reading opt
+	accept opt,2
+
+
+	;Converting num1 nd num2 to Hex
+	;num1
+	cmp byte[num1],39H
+	jbe nxt
+	sub byte[num1],07H
+	nxt:sub byte[num1],30H
+
+	;num2
+	cmp byte[num2],39H
+	jbe nxt1
+	sub byte[num2],07H
+	nxt1:sub byte[num2],30H
+
+	SUB BYTE[opt],30H
+	CMP BYTE[opt],01H
+	JE RA
+	CMP BYTE[opt],02H
+	JE SA
+	CMP BYTE[opt],03H
+	JE EXIT
+
+
+	
+	RA:
+	MOV AL,BYTE[num1]
+	MOV CL,BYTE[num2]
+	UP: ADD BYTE[result],AL
+	DEC CL
+	JNZ UP
+	JMP RESULT
+	
+	SA:
+	MOV AL,BYTE[num1]
+	MOV BL,BYTE[num2]
+	ABOVE:SHL BYTE[result],1 
+	SHL BL,1
+	JNC NEXT
+	ADD BYTE[result],AL
+	NEXT:
+	DEC BYTE[cnt]
+	JNZ ABOVE
+	JMP RESULT
+
+	RESULT:
+	mov bx,word[result]
+	and bx,000FH
+	;convert h_a LSB nibble
+	CMP bl,09H
+	JBE NEXT3
+	ADD bl,07H
+	NEXT3:ADD bl,30H
+
+	;convert h_a MSB nibble
+	mov ax,word[result]
+	and ax,00F0H
+	ror ax,4
+	CMP al,09H
+	JBE NEXT4
+	ADD al,07H
+	NEXT4:ADD al,30H
+	rol ax,8
+	add bx,ax
+	rol bx,8
+	mov word[result],bx
+
+	print result,2
+EXIT:
+	MOV RAX,60
+	MOV RDI,0
+	SYSCALL
